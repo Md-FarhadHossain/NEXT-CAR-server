@@ -35,6 +35,7 @@ const dbConnect = async () => {
 dbConnect()
 // Database Collection
 const categoryBrandCollection = client.db('nextCar').collection('categoryBrand')
+const categoryCarList = client.db('nextCar').collection('categoryCarList')
 
 // 
 
@@ -48,6 +49,19 @@ app.get('/category-brand', async(req, res) => {
     console.log(error.name.bgRed.bold, error.message.bold);
 }
 })
+app.get('/category-car', async(req, res) => {
+  try {
+    const brand = req.query.brand
+    const query = {brand: brand}
+    const result = await categoryCarList.find(query).toArray()
+    res.send(result)
+  }
+  catch(error){
+    console.log(error.name.bgRed.bold, error.message.bold);
+}
+})
+
+
 
 // Server listing
 app.listen(port, () => {
