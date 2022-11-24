@@ -62,6 +62,7 @@ app.get('/category-car', async(req, res) => {
 }
 })
 
+// Sending user data on server
 app.post('/user-details', async (req, res) => {
   try {
     const body = req.body
@@ -72,6 +73,19 @@ app.post('/user-details', async (req, res) => {
     console.log(error.name.bgRed.bold, error.message.bold);
 }
 })
+// Getting user data
+app.get('/user-details', async (req, res) => {
+  try {
+    const query = {}
+    const result = await userDetailsCollection.find(query).toArray()
+    res.send(result)
+
+  }
+  catch(error){
+    console.log(error.name.bgRed.bold, error.message.bold);
+}
+})
+
 
 
 
