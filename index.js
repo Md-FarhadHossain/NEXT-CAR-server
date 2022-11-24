@@ -76,7 +76,8 @@ app.post('/user-details', async (req, res) => {
 // Getting user data
 app.get('/user-details', async (req, res) => {
   try {
-    const query = {}
+    const email = req.query.email
+    const query = {email: email}
     const result = await userDetailsCollection.find(query).toArray()
     res.send(result)
 
