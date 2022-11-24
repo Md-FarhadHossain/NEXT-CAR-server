@@ -37,6 +37,7 @@ dbConnect()
 const categoryBrandCollection = client.db('nextCar').collection('categoryBrand')
 const categoryCarList = client.db('nextCar').collection('categoryCarList')
 const userDetailsCollection = client.db('nextCar').collection('userDetails')
+const carDetailsCollection = client.db('nextCar').collection('carDetails')
 
 // 
 
@@ -79,6 +80,19 @@ app.get('/user-details', async (req, res) => {
     const email = req.query.email
     const query = {email: email}
     const result = await userDetailsCollection.find(query).toArray()
+    res.send(result)
+
+  }
+  catch(error){
+    console.log(error.name.bgRed.bold, error.message.bold);
+}
+})
+
+// POSTing car data form seller
+app.post('/add-a-car', async (req, res) => {
+  try {
+    const body = req.body
+    const result = await carDetailsCollection.insertOne(body)
     res.send(result)
 
   }
