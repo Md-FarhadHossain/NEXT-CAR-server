@@ -36,6 +36,7 @@ dbConnect()
 // Database Collection
 const categoryBrandCollection = client.db('nextCar').collection('categoryBrand')
 const categoryCarList = client.db('nextCar').collection('categoryCarList')
+const userDetailsCollection = client.db('nextCar').collection('userDetails')
 
 // 
 
@@ -54,6 +55,17 @@ app.get('/category-car', async(req, res) => {
     const brand = req.query.brand
     const query = {brand: brand}
     const result = await categoryCarList.find(query).toArray()
+    res.send(result)
+  }
+  catch(error){
+    console.log(error.name.bgRed.bold, error.message.bold);
+}
+})
+
+app.post('/user-details', async (req, res) => {
+  try {
+    const body = req.body
+    const result = await userDetailsCollection.insertOne(body)
     res.send(result)
   }
   catch(error){
