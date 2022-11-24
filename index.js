@@ -100,7 +100,19 @@ app.post('/add-a-car', async (req, res) => {
     console.log(error.name.bgRed.bold, error.message.bold);
 }
 })
+// Car details data
+app.get('/car-details', async (req, res) => {
+  try {
+    const email = req.query.email
+    const query = {email: email}
+    const result = await carDetailsCollection.find(query).toArray()
+    res.send(result)
 
+  }
+  catch(error){
+    console.log(error.name.bgRed.bold, error.message.bold);
+}
+})
 
 
 
