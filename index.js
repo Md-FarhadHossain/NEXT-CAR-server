@@ -62,6 +62,17 @@ app.get('/category-car', async(req, res) => {
     console.log(error.name.bgRed.bold, error.message.bold);
 }
 })
+app.post('/category-car', async(req, res) => {
+  try {
+    const body = req.body
+    const result = await categoryCarList.insertOne(body)
+    console.log(result)
+    res.send(result)
+  }
+  catch(error){
+    console.log(error.name.bgRed.bold, error.message.bold);
+}
+})
 
 // Sending user data on server
 app.post('/user-details', async (req, res) => {
