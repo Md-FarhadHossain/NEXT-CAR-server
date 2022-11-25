@@ -66,7 +66,7 @@ app.get("/category-car", async (req, res) => {
        query = { email: req.query.email };
     }
     if (req.query.brand) {
-      query = { brand: req.query.brand };
+     query = { brand: req.query.brand };
     }
     
     const cursor = categoryCarList.find(query);
@@ -78,21 +78,7 @@ app.get("/category-car", async (req, res) => {
 
  
 });
-// app.get("/category-car/:id", async (req, res) => {
-//   try {
-//     // const email = req.query.email;
-//     // const query = { email: email };
-//     // const email = req.query.email
-//     // const brand = req.query.brand
-//     const id = req.params.id
-//     const query = {_id: ObjectId(id)}
 
-//     const result = await categoryCarList.findOne(query)
-//     res.send(result);
-//   } catch (error) {
-//     console.log(error.name.bgRed.bold, error.message.bold);
-//   }
-// });
 // POSTing car in category
 app.post("/category-car", async (req, res) => {
   try {
@@ -142,8 +128,14 @@ app.post("/user-details", async (req, res) => {
 // Getting user data
 app.get("/user-details", async (req, res) => {
   try {
-    const email = req.query.email;
-    const query = { email: email };
+    let query = {};
+    if (req.query.email) {
+       query = { email: req.query.email};
+    }
+    if (req.query.accountType) {
+     query = { accountType: req.query.accountType};
+    }
+  
     const result = await userDetailsCollection.find(query).toArray();
     res.send(result);
   } catch (error) {
