@@ -55,14 +55,44 @@ app.get("/category-brand", async (req, res) => {
 });
 app.get("/category-car", async (req, res) => {
   try {
-    const brand = req.query.brand;
-    const query = { brand: brand };
-    const result = await categoryCarList.find(query).toArray();
+    // const brand = req.query.brand;
+    // // const email = req.query.email
+    // const query = { brand: brand };
+    // // const e = {email: email}
+
+    
+    let query = {};
+    if (req.query.email) {
+       query = { email: req.query.email };
+    }
+    if (req.query.brand) {
+      query = { brand: req.query.brand };
+    }
+    
+    const cursor = categoryCarList.find(query);
+    const result = await cursor.toArray();
     res.send(result);
   } catch (error) {
     console.log(error.name.bgRed.bold, error.message.bold);
   }
+
+ 
 });
+// app.get("/category-car/:id", async (req, res) => {
+//   try {
+//     // const email = req.query.email;
+//     // const query = { email: email };
+//     // const email = req.query.email
+//     // const brand = req.query.brand
+//     const id = req.params.id
+//     const query = {_id: ObjectId(id)}
+
+//     const result = await categoryCarList.findOne(query)
+//     res.send(result);
+//   } catch (error) {
+//     console.log(error.name.bgRed.bold, error.message.bold);
+//   }
+// });
 // POSTing car in category
 app.post("/category-car", async (req, res) => {
   try {
@@ -74,7 +104,18 @@ app.post("/category-car", async (req, res) => {
     console.log(error.name.bgRed.bold, error.message.bold);
   }
 });
-
+// Deleteing car form seller
+app.delete("/category-car/:id", async (req, res) => {
+  try {
+    const id = req.params.id
+    const query = {_id: ObjectId(id)}
+    const result = await categoryCarList.deleteOne(query)
+    console.log(result)
+    res.send(result)
+  } catch (error) {
+    console.log(error.name.bgRed.bold, error.message.bold);
+  }
+});
 // Deleteing car form seller
 app.delete("/add-a-car/:id", async (req, res) => {
   try {
