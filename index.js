@@ -3,13 +3,55 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 require("dotenv").config();
 require("colors");
+const jwt = require('jsonwebtoken');
 const cors = require("cors");
 const port = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
 app.use(cors());
+const verifyJWT = (req, res, next) => {
+  const authHeaders = req.headers.authorization
+  if(!authHeaders) {
+      res.status(401).send({message: 'Unauthorized access'});
+  }
+  const token = authHeaders.split(' ')[1]
+  console.log(token)
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+      if(err){
+          res.status(401).send({message: 'Unauthorized access'});
+      }
+      req.decoded = decoded
+      next()
+  })
+}
 
+// Verify Seller
+const verifySeller = async (req, res, next) => {
+  console.log('verify admin', req.decoded.email)
+  const decodedEmail = req.decoded.email
+  const query = {email: decodedEmail}
+  const user = await userDetailsCollection.findOne(query)
+
+  if(user?.accountType !== 'Seller'){
+    return res.status(403).send({ message: 'forbidden access' })
+  }
+
+  next()
+}
+// Verify Admin
+const verifyAdmin = async (req, res, next) => {
+  console.log('verify admin', req.decoded.email)
+  const decodedEmail = req.decoded.email
+  const query = {email: decodedEmail}
+  const user = await userDetailsCollection.findOne(query)
+
+  if(user?.accountType !== 'Admin'){
+    return res.status(403).send({ message: 'forbidden access' })
+  }
+
+  next()
+}
 //
 app.get("/", (req, res) => {
   res.send("server is running");
@@ -43,6 +85,18 @@ const userDetailsCollection = client.db("nextCar").collection("userDetails");
 const carDetailsCollection = client.db("nextCar").collection("carDetails");
 
 //
+app.post('/jwt', (req, res) => {
+  try {
+      const user = req.body
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET)
+      res.send({token})
+      // console.log(result)
+  }
+  catch (error) {
+      console.log(error.name.bgRed, error.message.bold);
+    }
+})
+
 
 app.get("/category-brand", async (req, res) => {
   try {
@@ -55,29 +109,23 @@ app.get("/category-brand", async (req, res) => {
 });
 app.get("/category-car", async (req, res) => {
   try {
-    // const brand = req.query.brand;
-    // // const email = req.query.email
-    // const query = { brand: brand };
-    // // const e = {email: email}
-
-    
     let query = {};
     if (req.query.email) {
-       query = { email: req.query.email };
+      query = { email: req.query.email }; 
     }
     if (req.query.brand) {
-     query = { brand: req.query.brand };
+      query = { brand: req.query.brand }; 
     }
-    
-    const cursor = categoryCarList.find(query);
+
+    const cursor = categoryCarList.find(query); 
     const result = await cursor.toArray();
     res.send(result);
   } catch (error) {
     console.log(error.name.bgRed.bold, error.message.bold);
   }
-
- 
 });
+
+
 
 // POSTing car in category
 app.post("/category-car", async (req, res) => {
@@ -93,11 +141,11 @@ app.post("/category-car", async (req, res) => {
 // Deleteing car form seller
 app.delete("/category-car/:id", async (req, res) => {
   try {
-    const id = req.params.id
-    const query = {_id: ObjectId(id)}
-    const result = await categoryCarList.deleteOne(query)
-    console.log(result)
-    res.send(result)
+    const id = req.params.id;
+    const query = { _id: ObjectId(id) };
+    const result = await categoryCarList.deleteOne(query);
+    console.log(result);
+    res.send(result);
   } catch (error) {
     console.log(error.name.bgRed.bold, error.message.bold);
   }
@@ -105,11 +153,23 @@ app.delete("/category-car/:id", async (req, res) => {
 // Deleteing car form seller
 app.delete("/add-a-car/:id", async (req, res) => {
   try {
-    const id = req.params.id
-    const query = {_id: ObjectId(id)}
-    const result = await carDetailsCollection.deleteOne(query)
-    console.log(result)
-    res.send(result)
+    const id = req.params.id;
+    const query = { _id: ObjectId(id) };
+    const result = await carDetailsCollection.deleteOne(query);
+    console.log(result);
+    res.send(result);
+  } catch (error) {
+    console.log(error.name.bgRed.bold, error.message.bold);
+  }
+});
+// Deleteing user form Admin
+app.delete("/user-details/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = { _id: ObjectId(id) };
+    const result = await userDetailsCollection.deleteOne(query);
+    console.log(result);
+    res.send(result);
   } catch (error) {
     console.log(error.name.bgRed.bold, error.message.bold);
   }
@@ -130,12 +190,12 @@ app.get("/user-details", async (req, res) => {
   try {
     let query = {};
     if (req.query.email) {
-       query = { email: req.query.email};
+      query = { email: req.query.email };
     }
     if (req.query.accountType) {
-     query = { accountType: req.query.accountType};
+      query = { accountType: req.query.accountType };
     }
-  
+
     const result = await userDetailsCollection.find(query).toArray();
     res.send(result);
   } catch (error) {
@@ -155,7 +215,8 @@ app.post("/add-a-car", async (req, res) => {
 });
 app.get("/add-a-car", async (req, res) => {
   try {
-    const query = {}
+ 
+    const query = {};
     const result = await carDetailsCollection.find(query).toArray();
     res.send(result);
   } catch (error) {
