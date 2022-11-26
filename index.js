@@ -202,6 +202,19 @@ app.get("/user-details", async (req, res) => {
     console.log(error.name.bgRed.bold, error.message.bold);
   }
 });
+// Update user status
+app.patch("/user-details/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const result = await userDetailsCollection.updateOne(
+      { _id: ObjectId(id) },
+      { $set: req.body }
+    );
+    res.send(result);
+  } catch (error) {
+    console.log(error.name.bgRed, error.message.bold);
+  }
+});
 
 // POSTing car data form seller
 app.post("/add-a-car", async (req, res) => {
