@@ -3,7 +3,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 require("dotenv").config();
 require("colors");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const port = process.env.PORT || 5000;
 
@@ -11,47 +11,47 @@ const port = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cors());
 const verifyJWT = (req, res, next) => {
-  const authHeaders = req.headers.authorization
-  if(!authHeaders) {
-      res.status(401).send({message: 'Unauthorized access'});
+  const authHeaders = req.headers.authorization;
+  if (!authHeaders) {
+    res.status(401).send({ message: "Unauthorized access" });
   }
-  const token = authHeaders.split(' ')[1]
-  console.log(token)
-  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-      if(err){
-          res.status(401).send({message: 'Unauthorized access'});
-      }
-      req.decoded = decoded
-      next()
-  })
-}
+  const token = authHeaders.split(" ")[1];
+  console.log(token);
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      res.status(401).send({ message: "Unauthorized access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
 
 // Verify Seller
 const verifySeller = async (req, res, next) => {
-  console.log('verify admin', req.decoded.email)
-  const decodedEmail = req.decoded.email
-  const query = {email: decodedEmail}
-  const user = await userDetailsCollection.findOne(query)
+  console.log("verify admin", req.decoded.email);
+  const decodedEmail = req.decoded.email;
+  const query = { email: decodedEmail };
+  const user = await userDetailsCollection.findOne(query);
 
-  if(user?.accountType !== 'Seller'){
-    return res.status(403).send({ message: 'forbidden access' })
+  if (user?.accountType !== "Seller") {
+    return res.status(403).send({ message: "forbidden access" });
   }
 
-  next()
-}
+  next();
+};
 // Verify Admin
 const verifyAdmin = async (req, res, next) => {
-  console.log('verify admin', req.decoded.email)
-  const decodedEmail = req.decoded.email
-  const query = {email: decodedEmail}
-  const user = await userDetailsCollection.findOne(query)
+  console.log("verify admin", req.decoded.email);
+  const decodedEmail = req.decoded.email;
+  const query = { email: decodedEmail };
+  const user = await userDetailsCollection.findOne(query);
 
-  if(user?.accountType !== 'Admin'){
-    return res.status(403).send({ message: 'forbidden access' })
+  if (user?.accountType !== "Admin") {
+    return res.status(403).send({ message: "forbidden access" });
   }
 
-  next()
-}
+  next();
+};
 //
 app.get("/", (req, res) => {
   res.send("server is running");
@@ -85,18 +85,16 @@ const userDetailsCollection = client.db("nextCar").collection("userDetails");
 const carDetailsCollection = client.db("nextCar").collection("carDetails");
 
 //
-app.post('/jwt', (req, res) => {
+app.post("/jwt", (req, res) => {
   try {
-      const user = req.body
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET)
-      res.send({token})
-      // console.log(result)
+    const user = req.body;
+    const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
+    res.send({ token });
+    // console.log(result)
+  } catch (error) {
+    console.log(error.name.bgRed, error.message.bold);
   }
-  catch (error) {
-      console.log(error.name.bgRed, error.message.bold);
-    }
-})
-
+});
 
 app.get("/category-brand", async (req, res) => {
   try {
@@ -111,13 +109,16 @@ app.get("/category-car", async (req, res) => {
   try {
     let query = {};
     if (req.query.email) {
-      query = { email: req.query.email }; 
+      query = { email: req.query.email };
     }
     if (req.query.brand) {
-      query = { brand: req.query.brand }; 
+      query = { brand: req.query.brand };
+    }
+    if(req.query.advertise){
+      query = {advertise: req.query.advertise}
     }
 
-    const cursor = categoryCarList.find(query); 
+    const cursor = categoryCarList.find(query);
     const result = await cursor.toArray();
     res.send(result);
   } catch (error) {
@@ -125,19 +126,59 @@ app.get("/category-car", async (req, res) => {
   }
 });
 
-
-
 // POSTing car in category
 app.post("/category-car", async (req, res) => {
   try {
     const body = req.body;
     const result = await categoryCarList.insertOne(body);
+    console.log(body)
     console.log(result);
     res.send(result);
   } catch (error) {
     console.log(error.name.bgRed.bold, error.message.bold);
   }
 });
+// update seller
+app.put("/category-car", async (req, res) => {
+  try {
+    const email = req.query.email;
+    const filter = { email: email };
+    console.log(filter);
+    const updateDoc = {
+      $set: {
+        status: req.body,
+      },
+    };
+    const result = await categoryCarList.updateMany(filter, updateDoc);
+
+    res.send(result);
+  } catch (error) {
+    console.log(error.name.bgRed.bold, error.message.bold);
+  }
+});
+// Update boots button
+app.patch('/category-car/:id', async(req, res) => {
+  try{
+   const {id} = req.params
+   const query = { _id: ObjectId(id) }
+   const options = { upsert: true };
+   const updateDoc = {
+
+    $set: {
+
+      advertise: `advertise`
+
+    },
+
+  };
+    const result = await categoryCarList.updateOne(query, updateDoc, options)
+    console.log(req.body)
+    res.send(result)
+  }
+  catch (error) {
+    console.log(error.name.bgRed.bold, error.message.bold);
+  }
+})
 // Deleteing car form seller
 app.delete("/category-car/:id", async (req, res) => {
   try {
@@ -228,7 +269,6 @@ app.post("/add-a-car", async (req, res) => {
 });
 app.get("/add-a-car", async (req, res) => {
   try {
- 
     const query = {};
     const result = await carDetailsCollection.find(query).toArray();
     res.send(result);
