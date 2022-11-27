@@ -114,11 +114,14 @@ app.get("/category-car", async (req, res) => {
     if (req.query.brand) {
       query = { brand: req.query.brand };
     }
-    if(req.query.advertise){
-      query = {advertise: req.query.advertise}
+    if (req.query.advertise) {
+      query = { advertise: req.query.advertise };
     }
+    const sort = { _id: -1 };
+    const cursor = categoryCarList.find(query).sort(sort);
 
-    const cursor = categoryCarList.find(query);
+    // const cursor = categoryCarList.find(query).sort(sort);
+
     const result = await cursor.toArray();
     res.send(result);
   } catch (error) {
@@ -131,7 +134,7 @@ app.post("/category-car", async (req, res) => {
   try {
     const body = req.body;
     const result = await categoryCarList.insertOne(body);
-    console.log(body)
+    console.log(body);
     console.log(result);
     res.send(result);
   } catch (error) {
@@ -146,7 +149,7 @@ app.put("/category-car", async (req, res) => {
     console.log(query);
     const updateDoc = {
       $set: {
-        status: 'verified',
+        status: "verified",
       },
     };
     const result = await categoryCarList.updateMany(query, updateDoc);
@@ -157,28 +160,22 @@ app.put("/category-car", async (req, res) => {
   }
 });
 // Update boots button
-app.patch('/category-car/:id', async(req, res) => {
-  try{
-   const {id} = req.params
-   const query = { _id: ObjectId(id) }
-   const options = { upsert: true };
-   const updateDoc = {
+app.patch("/category-car/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const query = { _id: ObjectId(id) };
+    const options = { upsert: true };
+    const updateDoc = {
+      $set: req.body,
+    };
+    const result = await categoryCarList.updateOne(query, updateDoc, options);
+    console.log(req.body);
+    res.send(result);
 
-    $set: {
-
-      advertise: `advertise`
-
-    },
-
-  };
-    const result = await categoryCarList.updateOne(query, updateDoc, options)
-    console.log(req.body)
-    res.send(result)
-  }
-  catch (error) {
+  } catch (error) {
     console.log(error.name.bgRed.bold, error.message.bold);
   }
-})
+});
 // Deleteing car form seller
 app.delete("/category-car/:id", async (req, res) => {
   try {
