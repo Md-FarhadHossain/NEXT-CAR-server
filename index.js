@@ -142,14 +142,14 @@ app.post("/category-car", async (req, res) => {
 app.put("/category-car", async (req, res) => {
   try {
     const email = req.query.email;
-    const filter = { email: email };
-    console.log(filter);
+    const query = { email: email };
+    console.log(query);
     const updateDoc = {
       $set: {
-        status: req.body,
+        status: 'verified',
       },
     };
-    const result = await categoryCarList.updateMany(filter, updateDoc);
+    const result = await categoryCarList.updateMany(query, updateDoc);
 
     res.send(result);
   } catch (error) {
