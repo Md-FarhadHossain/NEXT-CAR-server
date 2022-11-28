@@ -86,6 +86,7 @@ const userDetailsCollection = client.db("nextCar").collection("userDetails");
 const carDetailsCollection = client.db("nextCar").collection("carDetails");
 const paymentsCollection = client.db("nextCar").collection("payments");
 const wishListCollection = client.db("nextCar").collection("wishList");
+const userOrderCollection = client.db("nextCar").collection("userOrder");
 
 // Stripe payment
 app.post("/create-payment-intent", async (req, res) => {
@@ -120,6 +121,22 @@ app.post('/payments', async (req, res) => {
     console.log(error.name.bgRed, error.message.bold);
   }
 })
+app.get('/payments', async (req, res) => {
+  try{
+    let query = {}
+    // const carID = req.query.carID
+    if(req.query.carID){
+      query = {carID: req.query.carID}
+    }
+    const result = await paymentsCollection.find(query).toArray()
+    res.send(result)
+  }
+  catch (error) {
+    console.log(error.name.bgRed, error.message.bold);
+  }
+})
+
+
 
 //
 app.post("/jwt", (req, res) => {
@@ -171,6 +188,40 @@ app.get("/category-car", async (req, res) => {
     console.log(error.name.bgRed.bold, error.message.bold);
   }
 });
+
+// myorder
+app.post('/my-order', async (req, res) => {
+  try{
+    const body = req.body
+    const result = await userOrderCollection.insertOne(body)
+    res.send(result)
+  }catch (error) {
+    console.log(error.name.bgRed.bold, error.message.bold);
+  }
+})
+
+app.get('/my-order', async (req, res) => {
+  try{
+    const email = req.query.userEmail
+    const query = {userEmail: email}
+    const result = await userOrderCollection.find(query).toArray()
+    res.send(result)
+  }
+  catch (error) {
+    console.log(error.name.bgRed.bold, error.message.bold);
+  }
+})
+app.get('/my-order/:id', async (req, res) => {
+  try{
+    const { id } = req.params;
+    const query = { _id: ObjectId(id) };
+    const result = await userOrderCollection.findOne(query);
+    res.send(result);
+  }
+  catch (error) {
+    console.log(error.name.bgRed.bold, error.message.bold);
+  }
+})
 
 // Wish List
 app.post('/wishlist', async (req, res) => {
