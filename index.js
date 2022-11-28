@@ -3,7 +3,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 require("dotenv").config();
 require("colors");
-const stripe = require('stripe')(process.env.STRIPE_SK)
+const stripe = require("stripe")(process.env.STRIPE_SK);
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const port = process.env.PORT || 5000;
@@ -84,31 +84,40 @@ const categoryBrandCollection = client
 const categoryCarList = client.db("nextCar").collection("categoryCarList");
 const userDetailsCollection = client.db("nextCar").collection("userDetails");
 const carDetailsCollection = client.db("nextCar").collection("carDetails");
-
+const paymentsCollection = client.db("nextCar").collection("payments");
+const wishListCollection = client.db("nextCar").collection("wishList");
 
 // Stripe payment
 app.post("/create-payment-intent", async (req, res) => {
-  try{
-    const body = req.body
-    const price = parseInt(body.price)
-    const amount = price * 100
+  try {
+    const body = req.body;
+    const price = parseInt(body.price);
+    const amount = price * 100;
 
     const paymentIntent = await stripe.paymentIntents.create({
-      currency: 'usd',
+      currency: "usd",
       amount: amount,
-      "payment_method_types": [
-        "card"
-      ],
-    })
-    console.log(body)
+      payment_method_types: ["card"],
+    });
+    console.log(body);
     res.send({
       clientSecret: paymentIntent.client_secret,
     });
+  } catch (error) {
+    console.log(error.name.bgRed, error.message.bold);
+    // console.log(error)
+  }
+});
 
+// Posting payment collection
+app.post('/payments', async (req, res) => {
+  try{
+    const payment = req.body
+    const result  = await paymentsCollection.insertOne(payment)
+    res.send(result)
   }
   catch (error) {
     console.log(error.name.bgRed, error.message.bold);
-    // console.log(error)
   }
 })
 
@@ -148,6 +157,9 @@ app.get("/category-car", async (req, res) => {
     if (req.query.wishList) {
       query = { wishList: req.query.wishList };
     }
+    if(req.query.report){
+      query = {report: req.query.report}
+    }
     const sort = { _id: -1 };
     const cursor = categoryCarList.find(query).sort(sort);
 
@@ -159,6 +171,46 @@ app.get("/category-car", async (req, res) => {
     console.log(error.name.bgRed.bold, error.message.bold);
   }
 });
+
+// Wish List
+app.post('/wishlist', async (req, res) => {
+  try{
+    const body = req.body
+    const result = await wishListCollection.insertOne(body)
+    res.send(result)
+  }
+  catch (error) {
+    console.log(error.name.bgRed.bold, error.message.bold);
+  }
+})
+
+app.get('/wishlist', async(req, res) => {
+  try {
+    const email = req.query.userEmail
+    const query = {userEmail: email}
+    const result = await wishListCollection.find(query).toArray()
+    res.send(result)
+
+  }
+  catch (error) {
+    console.log(error.name.bgRed.bold, error.message.bold);
+  }
+})
+app.patch('/wishlist/:id', async(req, res) => {
+  try {
+    const { id } = req.params;
+    const query = { _id: ObjectId(id) };
+    const options = { upsert: true };
+    const updateDoc = {
+      $set: req.body,
+    };
+    const result = await wishListCollection.updateOne(query, updateDoc, options);
+    console.log(req.body);
+    res.send(result);
+  } catch (error) {
+    console.log(error.name.bgRed.bold, error.message.bold);
+  }
+})
 
 // get cagegory car by id
 app.get("/category-car/:id", async (req, res) => {
